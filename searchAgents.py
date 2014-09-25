@@ -344,6 +344,8 @@ class CornersProblem(search.SearchProblem):
       if self.walls[x][y]: return 999999
     return len(actions)
 
+def manDist(xy1,xy2):
+  return abs(xy1[0] - xy2[0]) + abs(xy1[1] - xy2[1])
 
 def cornersHeuristic(state, problem):
   """
@@ -363,7 +365,21 @@ def cornersHeuristic(state, problem):
   walls = problem.walls # These are the walls of the maze, as a Grid (game.py)
   
   "*** YOUR CODE HERE ***"
-  return 0 # Default to trivial solution
+  x,y = state[0]
+  listofunvsted = list(state[1])
+  if (len(listofunvsted)==4):
+    firstcornerdists = [manDist((x,y),corners[0]),manDist((x,y),corners[1]),manDist((x,y),corners[2]),manDist((x,y),corners[3]) ]
+    indexofmin = firstcornerdists.index(min(firstcornerdists))
+    next3dist = manDist(corners[0],corners[2])+manDist(corners[0],corners[1])+manDist(corners[2],corners[3])
+    return min(firstcornerdists)+next3dist  
+  if (len(listofunvsted)==3):
+    return min(manDist((x,y),listofunvsted[0]),manDist((x,y),listofunvsted[1]), manDist((x,y),listofunvsted[2]))+max(manDist(listofunvsted[1],listofunvsted[0]),manDist(listofunvsted[1],listofunvsted[2]),manDist(listofunvsted[2],listofunvsted[0]))
+  if (len(listofunvsted)==2):
+    return min(manDist((x,y),listofunvsted[0]),manDist((x,y),listofunvsted[1]))+manDist(listofunvsted[1],listofunvsted[0])
+  if (len(listofunvsted)==1):
+    return manDist((x,y),listofunvsted[0])
+  return 0
+# Default to trivial solution
 
 class AStarCornersAgent(SearchAgent):
   "A SearchAgent for FoodSearchProblem using A* and your foodHeuristic"
@@ -454,7 +470,35 @@ def foodHeuristic(state, problem):
   """
   position, foodGrid = state
   "*** YOUR CODE HERE ***"
-  return 0
+  ydist = 0
+  ymaxarray = []
+  yminarray = []
+  ydistarray = []
+  if(foodGrid.count() == 0):
+    return 0
+  xmin = 999999
+  xmax = 0
+  for x in range(foodGrid.width):
+    ymax = 0
+    ymin = 0
+    for y in range(foodGrid.height):
+      if (foodGrid[x][y] == True or (position[0] == x and position[1] == y)):
+        ymin = y
+	yminarray.append(y)
+	xmin = min(xmin, x)
+	break
+    for y in list(reversed(range(foodGrid.height))):
+      if (foodGrid[x][y] or (position[0] == x and position[1] == y)):
+	ymax = y
+	ymaxarray.append(y)
+	xmax = max(xmax,x)
+	break
+    ydistarray.append(ymax-ymin)
+  interimdist = 0
+  for x in range(1,len(yminarray)):
+    interimdist += min(abs(ymaxarray[x]-ymaxarray[x-1]),abs(yminarray[x]-yminarray[x-1]),abs(ymaxarray[x]-yminarray[x-1]), abs(yminarray[x]-ymaxarray[x-1]))
+
+  return sum(ydistarray)+ xmax - xmin + interimdist
   
 class ClosestDotSearchAgent(SearchAgent):
   "Search for all food using a sequence of searches"
