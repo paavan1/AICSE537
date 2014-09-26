@@ -34,7 +34,7 @@
    \vspace*{4mm}
 }
 
-\newcommand{\handout}[3]{\heading{#1}{#2}{\it Paavan Kumar Sirigiri, 109596437  Vivek Pradhan,         Varsha Paidi}{}{#3}}
+\newcommand{\handout}[3]{\heading{#1}{#2}{\it Paavan Kumar Sirigiri, 109596437  Vivek Pradhan, 109596020         Varsha Paidi, 107677677}{}{#3}}
 
 \setlength{\parindent}{0in}
 \setlength{\parskip}{0.1in}
@@ -54,7 +54,10 @@
 
 {\bf Q6:}
  We assume a relaxed problem where there are no walls in the maze. The heuristic for the corners problem is chosen to be  sum of the manhattan distance to the closest  corner from the pacman postion and manhattan distances betwwen the unvisited corners. \\
- Corners heuristic = $$Manhattan distance to closest corner from the pacman position available + Sum of the manhattan distances betwwen the unvisited corners$$ \\
+ 
+    \begin{tabular}{c c  p{5cm} c  p{5cm}}
+  Corners heuristic&=& Manhattan distance to closest corner from the pacman position available &+&  Sum of the manhattan distances betwwen the unvisited corners\\
+  \end{tabular}
   
   This heuristic is admissible as it is always  less than the actual cost of collecting all the food by pacman. The heuristic is also consistent because the difference between heuristics for two consecutive states is always less than the actual step cost  between the states.\\
 
@@ -217,11 +220,11 @@ Record:        Win
 
 \section{Critical Analysis}
 The following observations and inferences can be made from the statistics.\\
-1. Breadth first search has expanded  more nodes than Depthfirst search  before reaching the goal state  as Depth first search searches deeper nodes faster.\\
+1. In the pacman problem,  Breadth first search has expanded  more nodes than Depth first search  before reaching the goal state  as Depth first search searches deeper nodes faster.\\
 
-2. A-star search finds the goal state by expanding lesser number of nodes if there is a good approximation of heuristic. As observed, in Q4,  Manhattan heuristic expands very less number of nodes(539) compared to null heuristic(620). Hence, choosing a admissible and consistent heuristic that better approximates the actual distance to goal state is crucial.\\
+2. A-star search finds the goal state by expanding lesser number of nodes if there is a good  heuristic. As observed, in Q4,  Manhattan heuristic expands very less number of nodes(539) compared to null heuristic(620). Hence, choosing a admissible and consistent heuristic that better approximates the actual distance to goal state is crucial.\\
 
-3. For the food heuristic problem, we observed that giving a better approximation of the distance to the goal state drastically reduces the number of expanded nodes. Initially we approximated the heuristic to be the sum of the  maximum vertical difference of the food dots  in each column  of the maze grid and were able to expand 13534 nodes. We improved this to 8157 nodes by adding  maximum horizontal distance of the food dots to the heuristic estimate. Further improvement to 6864 nodes has been observed by adding the vertical gap distance the pacman has to travel to reach from one column to the  adjacent column.\\
+3. For the food heuristic problem, we observed that giving a better approximation of the distance to the goal state drastically reduces the number of expanded nodes. Initially we used the sum of the  maximum vertical difference of the food dots  in each column  of the maze grid  as the  heuristic and were able to expand 13534 nodes. We improved this to 8157 nodes by adding  maximum horizontal distance of the food dots to the heuristic. Further improvement to 6864 nodes has been observed by adding the vertical gap distance the pacman has to travel to reach from one column to the  adjacent column.\\
   We tried to consider the closest food dot to pacman position for the heuristic estimate. Doing this way would have given better approximation of the heuristic  but that was computationally intensive and took more time to expand all the nodes. Therefore we considered pacman also as a food dot. 
 
 
