@@ -106,31 +106,81 @@ class MultiAgentSearchAgent(Agent):
         self.index = 0 # Pacman is always agent index 0
         self.evaluationFunction = util.lookup(evalFn, globals())
         self.depth = int(depth)
-
+        self._expanded = 0
 class MinimaxAgent(MultiAgentSearchAgent):
-    """
-      Your minimax agent (question 2)
-    """
-
+     
     def getAction(self, gameState):
-        """
-          Returns the minimax action from the current gameState using self.depth
-          and self.evaluationFunction.
+      #Generating the legal actions
+          legalActions = gameState.getLegalPacmanActions()
+          maxscore= -999999
+          for action in legalActions:
+          #Getting the successor game states from the pacman initial state
+            newGameState = gameState.generatePacmanSuccessor(action) 
+          #Getting the min score of the successor game state
+            score = self.minValue(newGameState, 0,  1)
+          #update the maximum value and best action
+            if (score >maxscore):
+             maxscore = score
+             bestaction=action
+          
+          #print self._expanded
+          return bestaction
+    def minValue(self, gameState, currentDepth, ghostIndex):
+    #Terminal state check - return the evaluation function of the  state
+        self._expanded+=1
+        if self.testterminalstate(gameState, currentDepth):
+            return self.evaluationFunction(gameState)
+    
+    
+    
+        #Get the list of legal actions for the current ghost
+        ghostLegalActions = gameState.getLegalActions(ghostIndex)
+    
+        
+    
+        #Get the number of ghosts from the game state
+        ghostnumber = gameState.getNumAgents() - 1
+        #Looping thought the current ghost's moves
+        for action in ghostLegalActions:
+            newGameState= gameState.generateSuccessor(ghostIndex, action)
+        #if the current ghost is the last ghost then switch to the max function
+        #  else call the min function for next ghost agent
+        if(ghostIndex == ghostnumber):
+            
+               scores = [self.maxValue(newGameState, currentDepth + 1)]
+        
+        elif(ghostIndex < ghostnumber):
+            
+               scores = [self.minValue(newGameState, currentDepth, ghostIndex + 1)]
+    
+        #returning the minimum value of all scores
+        return min(scores)
 
-          Here are some method calls that might be useful when implementing minimax.
-
-          gameState.getLegalActions(agentIndex):
-            Returns a list of legal actions for an agent
-            agentIndex=0 means Pacman, ghosts are >= 1
-
-          gameState.generateSuccessor(agentIndex, action):
-            Returns the successor game state after an agent takes an action
-
-          gameState.getNumAgents():
-            Returns the total number of agents in the game
-        """
-        "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+    
+    def maxValue(self, gameState, currentDepth):
+    
+        self._expanded+=1
+         #Terminal state check - return the evaluation function of the  state
+        if self.testterminalstate(gameState, currentDepth):
+            return self.evaluationFunction(gameState)
+    
+        #Generate the legal pacman actions
+        pacmanLegalActions = gameState.getLegalPacmanActions()
+    
+    
+        #For every valid pacman action, compute scores
+        for action in pacmanLegalActions:
+            if not (action == 'STOP'):
+                newGameState = gameState.generatePacmanSuccessor(action)
+                pacmanScores = [self.minValue(newGameState, currentDepth , 1)]
+        #Return the maximum score
+        return max(pacmanScores)
+    def testterminalstate(self,gameState,currentDepth):
+        # check for loss or win or maximum depth reached 
+          if self.depth == currentDepth or gameState.isLose() or gameState.isWin() :
+              return True
+          else:
+              return False
 
 class AlphaBetaAgent(MultiAgentSearchAgent):
     """
@@ -138,12 +188,94 @@ class AlphaBetaAgent(MultiAgentSearchAgent):
     """
 
     def getAction(self, gameState):
-        """
-          Returns the minimax action using self.depth and self.evaluationFunction
-        """
-        "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+          alpha = float('-Inf')
+        
+          beta = float('inf')
+        # current score
+          score = float('-Inf')
+      #Generating the legal actions
+          legalActions = gameState.getLegalPacmanActions()
+          maxscore= float('-Inf')
+          for action in legalActions:
+          #Getting the successor game states from the pacman initial state
+            newGameState = gameState.generatePacmanSuccessor(action) 
+          #Getting the min score of the successor game state
+            score = self.minValue(newGameState, 0,  1,alpha,beta)
+          #update the maximum value and best action
+            if (score >maxscore):
+             maxscore = score
+             bestaction=action
+            alpha=max(alpha,maxscore)
+          #print self._expanded
+          return bestaction
+    def minValue(self, gameState, currentDepth, ghostIndex,alpha,beta):
+    #Terminal state check - return the evaluation function of the  state
+        self._expanded+=1
+        if self.testterminalstate(gameState, currentDepth):
+            return self.evaluationFunction(gameState)
+    
+    
+        minscore = float('inf') 
+        #Get the list of legal actions for the current ghost
+        ghostLegalActions = gameState.getLegalActions(ghostIndex)
+    
+        
+    
+        #Get the number of ghosts from the game state
+        ghostnumber = gameState.getNumAgents() - 1
+        #Looping thought the current ghost's moves
+        for action in ghostLegalActions:
+            newGameState= gameState.generateSuccessor(ghostIndex, action)
+        #if the current ghost is the last ghost then switch to the max function
+        #  else call the min function for next ghost agent
+            if(ghostIndex == ghostnumber):
+                
+                   score = self.maxValue(newGameState, currentDepth + 1,alpha,beta)
+            
+            elif(ghostIndex < ghostnumber):
+                
+                   score= self.minValue(newGameState, currentDepth, ghostIndex + 1,alpha,beta)
+            #alpha pruning
+            if(score<=alpha):
+                return score
+            elif(score<minscore):
+                minscore=score
+            
+            beta=min(beta,score)
+        #returning the minimum value of all scores
+        return minscore
 
+    
+    def maxValue(self, gameState, currentDepth,alpha,beta):
+        maxscore = float('-Inf')
+        self._expanded+=1
+         #Terminal state check - return the evaluation function of the  state
+        if self.testterminalstate(gameState, currentDepth):
+            return self.evaluationFunction(gameState)
+    
+        #Generate the legal pacman actions
+        pacmanLegalActions = gameState.getLegalPacmanActions()
+    
+    
+        #For every valid pacman action, compute scores
+        for action in pacmanLegalActions:
+            if not (action == 'STOP'):
+                newGameState = gameState.generatePacmanSuccessor(action)
+                pacmanScore = self.minValue(newGameState, currentDepth , 1,alpha,beta)
+                 #beta pruning
+                if(pacmanScore>=beta):
+                 return pacmanScore
+                elif(pacmanScore>maxscore):
+                 maxscore=pacmanScore
+                alpha=max(alpha,pacmanScore)
+        #Return the maximum score
+        return maxscore
+    def testterminalstate(self,gameState,currentDepth):
+        # check for loss or win or maximum depth reached 
+          if self.depth == currentDepth or gameState.isLose() or gameState.isWin() :
+              return True
+          else:
+              return False
 class ExpectimaxAgent(MultiAgentSearchAgent):
     """
       Your expectimax agent (question 4)
