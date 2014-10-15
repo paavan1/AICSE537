@@ -107,23 +107,24 @@ class MultiAgentSearchAgent(Agent):
         self.evaluationFunction = util.lookup(evalFn, globals())
         self.depth = int(depth)
         self._expanded = 0
+        
 class MinimaxAgent(MultiAgentSearchAgent):
      
     def getAction(self, gameState):
       #Generating the legal actions
-          legalActions = gameState.getLegalPacmanActions()
+          legalActions = gameState.getLegalActions()
           maxscore= -999999
           for action in legalActions:
           #Getting the successor game states from the pacman initial state
-            newGameState = gameState.generatePacmanSuccessor(action) 
+            newGameState = gameState.generateSuccessor(0,action) 
           #Getting the min score of the successor game state
             score = self.minValue(newGameState, 0,  1)
           #update the maximum value and best action
             if (score >maxscore):
              maxscore = score
              bestaction=action
+          print "Expanded nodes: " + str(self._expanded)
           
-          #print self._expanded
           return bestaction
     def minValue(self, gameState, currentDepth, ghostIndex):
     #Terminal state check - return the evaluation function of the  state
@@ -136,7 +137,7 @@ class MinimaxAgent(MultiAgentSearchAgent):
         #Get the list of legal actions for the current ghost
         ghostLegalActions = gameState.getLegalActions(ghostIndex)
     
-        
+        minscore= 999999
     
         #Get the number of ghosts from the game state
         ghostnumber = gameState.getNumAgents() - 1
@@ -145,16 +146,17 @@ class MinimaxAgent(MultiAgentSearchAgent):
             newGameState= gameState.generateSuccessor(ghostIndex, action)
         #if the current ghost is the last ghost then switch to the max function
         #  else call the min function for next ghost agent
-        if(ghostIndex == ghostnumber):
+            if(ghostIndex == ghostnumber):
             
-               scores = [self.maxValue(newGameState, currentDepth + 1)]
+               scores = self.maxValue(newGameState, currentDepth + 1)
         
-        elif(ghostIndex < ghostnumber):
+            elif(ghostIndex < ghostnumber):
             
-               scores = [self.minValue(newGameState, currentDepth, ghostIndex + 1)]
-    
+               scores = self.minValue(newGameState, currentDepth, ghostIndex + 1)
+            if(scores<minscore):
+                minscore=scores
         #returning the minimum value of all scores
-        return min(scores)
+        return minscore
 
     
     def maxValue(self, gameState, currentDepth):
@@ -165,16 +167,18 @@ class MinimaxAgent(MultiAgentSearchAgent):
             return self.evaluationFunction(gameState)
     
         #Generate the legal pacman actions
-        pacmanLegalActions = gameState.getLegalPacmanActions()
+        pacmanLegalActions = gameState.getLegalActions()
     
-    
+        maxscore= -999999
         #For every valid pacman action, compute scores
         for action in pacmanLegalActions:
             if not (action == 'STOP'):
-                newGameState = gameState.generatePacmanSuccessor(action)
-                pacmanScores = [self.minValue(newGameState, currentDepth , 1)]
+                newGameState = gameState.generateSuccessor(0,action)
+                pacmanScores = self.minValue(newGameState, currentDepth , 1)
+                if(pacmanScores>maxscore):
+                    maxscore=pacmanScores
         #Return the maximum score
-        return max(pacmanScores)
+        return maxscore
     def testterminalstate(self,gameState,currentDepth):
         # check for loss or win or maximum depth reached 
           if self.depth == currentDepth or gameState.isLose() or gameState.isWin() :
@@ -194,11 +198,11 @@ class AlphaBetaAgent(MultiAgentSearchAgent):
         # current score
           score = float('-Inf')
       #Generating the legal actions
-          legalActions = gameState.getLegalPacmanActions()
+          legalActions = gameState.getLegalActions()
           maxscore= float('-Inf')
           for action in legalActions:
           #Getting the successor game states from the pacman initial state
-            newGameState = gameState.generatePacmanSuccessor(action) 
+            newGameState = gameState.generateSuccessor(0,action) 
           #Getting the min score of the successor game state
             score = self.minValue(newGameState, 0,  1,alpha,beta)
           #update the maximum value and best action
@@ -206,7 +210,7 @@ class AlphaBetaAgent(MultiAgentSearchAgent):
              maxscore = score
              bestaction=action
             alpha=max(alpha,maxscore)
-          #print self._expanded
+          print "Expanded nodes: " + str(self._expanded)
           return bestaction
     def minValue(self, gameState, currentDepth, ghostIndex,alpha,beta):
     #Terminal state check - return the evaluation function of the  state
@@ -236,7 +240,7 @@ class AlphaBetaAgent(MultiAgentSearchAgent):
                 
                    score= self.minValue(newGameState, currentDepth, ghostIndex + 1,alpha,beta)
             #alpha pruning
-            if(score<=alpha):
+            if(score<alpha):
                 return score
             elif(score<minscore):
                 minscore=score
@@ -254,16 +258,16 @@ class AlphaBetaAgent(MultiAgentSearchAgent):
             return self.evaluationFunction(gameState)
     
         #Generate the legal pacman actions
-        pacmanLegalActions = gameState.getLegalPacmanActions()
+        pacmanLegalActions = gameState.getLegalActions()
     
     
         #For every valid pacman action, compute scores
         for action in pacmanLegalActions:
             if not (action == 'STOP'):
-                newGameState = gameState.generatePacmanSuccessor(action)
+                newGameState = gameState.generateSuccessor(0,action)
                 pacmanScore = self.minValue(newGameState, currentDepth , 1,alpha,beta)
                  #beta pruning
-                if(pacmanScore>=beta):
+                if(pacmanScore>beta):
                  return pacmanScore
                 elif(pacmanScore>maxscore):
                  maxscore=pacmanScore
