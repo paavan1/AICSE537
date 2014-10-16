@@ -25,18 +25,18 @@ def solve_puzzle(puzzle, argv):
     if (puzzle == False):
         return "Failed"
     return puzzle
-def allUnique(x):
-    seen = list()
-    return not any(i in seen or seen.append(i) for i in x if i != 0)
+
 def check_valid(puzzle):
+    def allUnique(x):
+        seen = list()
+        return not any(i in seen or seen.append(i) for i in x)
     check = list()
-    for i in range(0,9):
-        check.append(allUnique(puzzle[i][:]))
-    for i in range(0,9):
-        check.append(allUnique([row[i] for row in puzzle]))
-    for i in [0,3,6]:
-        for j in [0,3,6]:
-            check.append(allUnique([puzzle[i+0][j+0],puzzle[i+0][j+1],puzzle[i+0][j+2],puzzle[i+1][j+0],puzzle[i+1][j+1],puzzle[i+1][j+2],puzzle[i+2][j+0],puzzle[i+2][j+1],puzzle[i+2][j+2]]))
+    for i in range(0,len(puzzle[0][:])):
+        check.append(allUnique([puzzle[i][:]]))
+    for i in range(0,len(puzzle[0][:])):
+        check.append(allUnique([puzzle[:][i]]))
+    print str(check)
+    print all(check)
     return all(check)
 
 def choose_variable(puzzle):
@@ -55,6 +55,7 @@ def recursive_backtracking(puzzle):
 	if ((check_valid(puzzle) == True) and (check_complete(puzzle) == True)):
 		return puzzle
 	[x_val, y_val] = choose_variable(puzzle)
+	print str([x_val, y_val])
 	for value in range(1,10):
 		puzzle[x_val][y_val] = value
 		if (check_valid(puzzle) == True):
@@ -67,6 +68,7 @@ def recursive_backtracking(puzzle):
 
 #===================================================#
 puzzle = load_sudoku('puzzle.txt')
+print allUnique(puzzle[0][:])
 print "solving ..."
 t0 = time()
 solution = solve_puzzle(puzzle, sys.argv)
