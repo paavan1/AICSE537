@@ -43,22 +43,21 @@ def choose_variable(puzzle, listoflistofstacks):
 	minimumvalues = [100,100,100]
 	for i in range(0,9):
 		for j in range(0,9):
-			if((len(listoflistofstacks[i][j]) < minimumvalues[2]) and (len(listoflistofstacks[i][j])>1) and (puzzle[i][j]==0)):
+			if((len(listoflistofstacks[i][j]) < minimumvalues[2]) and (puzzle[i][j]==0)):
 				minimumvalues = [i, j, len(listoflistofstacks[i][j])]
-	if(minimumvalues[0] == 100):
-		for i in range(0,9):
-			for j in range(0,9):
-				if (puzzle[i][j]==0):
-					return [i,j]
-		return False
-
-		
-	else:
+	if (minimumvalues[2]!=100):
 		return [minimumvalues[0],minimumvalues[1]]
+	else:
+	 	return False
 def check_complete(puzzle):
 	if(choose_variable(puzzle,listoflistofstacks) == False):
 		return True
 	return False
+def print_listoflist(listoflistofstacks):
+	 for i in range(0,9):
+		 print listoflistofstacks[i]
+	 print "done printing.."
+
 def build_stacks(puzzle):
 	listoflistofstacks = []
 	rowsofstacks = []
@@ -71,33 +70,41 @@ def build_stacks(puzzle):
 			else:
 				rowsofstacks.append([puzzle[i][j]])
 		listoflistofstacks.append(rowsofstacks)
+	print_listoflist(listoflistofstacks)
+	for i in range(0,9):
+		for j in range(0,9):
+			if( len(listoflistofstacks[i][j]) == 1):
+				listoflistofstacks = propogate_constraints(puzzle,listoflistofstacks,i,j)
+	print_listoflist(listoflistofstacks)
 	return listoflistofstacks
 
 
-def propogate_constraints(puzzle,lister, x, y, value):
+def propogate_constraints(puzzle,lister, x, y):
+	if( len(lister[x][y]) != 1):
+			return lister
+	value = lister[x][y][0]
 #collums
 	for i in range(0,9):
 		if(( value in lister[x][i]) and (puzzle[x][i]==0) and (len(lister[x][i]) > 1) ):
-			lister[x][i].remove(value)
-			print "removed"
-#			if (len(lister[x][i])==1):
-#				propogate_constraints(lister, x, i, lister[x][i][0])
+			lister[x][i] = [xt for xt in lister[x][i] if xt != value]
+			if (len(lister[x][i])==1):
+				propogate_constraints(puzzle,lister, x, i)
 #rows
-#	for j in range(0,9):
-#		if value in lister[j][y]:
-#			lister[j][y].remove(value)
-#			if (len(lister[j][y])==1):
-#				 propogate_constraints(lister, j, y, lister[j][y][0])
+	for j in range(0,9):
+		if( (value in lister[j][y]) and (puzzle[j][y]==0) and (len(lister[j][y]) > 1)):
+			lister[j][y] = [xt for xt in lister[j][y] if xt != value]
+			if (len(lister[j][y])==1):
+				 propogate_constraints(puzzle,lister, j, y)
 
 #box
 #	box_x = x/3
 #	box_y = y/3
 #	for i in range(0,3):
 #		for j in range(0,3):
-#			if value in lister[box_x + i][box_y + j]:
-#				lister[box_x + i][box_y + j].remove(value)
+#			if ((value in lister[box_x + i][box_y + j]) and (puzzle[box_x + i][box_y + j]==0) and (len(lister[box_x + i][box_y + j])>1)):
+#				lister[box_x + i][box_y + j] = [xt for xt in lister[box_x + i][box_y + j] if xt != value]
 #				if (len(lister[box_x + i][box_y + j])==1):
-#					 propogate_constraints(lister, box_x + i,box_y + j, lister[box_x + i][box_y + j][0])
+#					 propogate_constraints(puzzle,lister, box_x + i,box_y + j)
 
 	return lister	
 
@@ -107,23 +114,23 @@ def propogate_constraints(puzzle,lister, x, y, value):
 def recursive_backtracking(puzzle, listoflistofstacks):
 	if ((check_valid(puzzle) == True) and (check_complete(puzzle) == True)):
 		return puzzle
-	[x_val, y_val] = choose_variable(puzzle,listoflistofstacks)
-	savedstack = listoflistofstacks
-	for value in savedstack[x_val][y_val]:
-	 	savedstack2 = listoflistofstacks
-		puzzle[x_val][y_val] = value
-#		listoflistofstacks[x_val][y_val] = [value]
-#		listoflistofstacks = propogate_constraints(puzzle,listoflistofstacks, x_val, y_val, value)
+	[x, y] = choose_variable(puzzle,listoflistofstacks)
+	savedstack1 = listoflistofstacks	
+	for value in savedstack1[x][y]:
+		savedstack = listoflistofstacks
+		savedpuzzle = puzzle
+		puzzle[x][y] = value
 		if (check_valid(puzzle) == True):
-			print "true"
-			result = recursive_backtracking(puzzle, listoflistofstacks)
-			if (result != False):
-				return result
-		else:
-		  	print "false"
-		listoflistofstacks = savedstack2
-	puzzle[x_val][y_val] = 0
-#	listoflistofstacks = savedstack
+			listoflistofstacks[x][y] = [value]
+#			listoflistofstacks = propogate_constraints(puzzle, listoflistofstacks, x,y)
+			puzzle = recursive_backtracking(puzzle, listoflistofstacks)
+			if (puzzle != False):
+				return puzzle
+			else:
+				listoflistofstacks = savedstack
+				puzzle = savedpuzzle
+	puzzle[x][y] = 0
+	listoflistofstacks = savedstack1
 	return False
 
 #===================================================#
