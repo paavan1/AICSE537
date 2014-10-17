@@ -75,7 +75,42 @@ class ReflexAgent(Agent):
         newScaredTimes = [ghostState.scaredTimer for ghostState in newGhostStates]
 
         "*** YOUR CODE HERE ***"
-        return successorGameState.getScore()
+        #evaluation function - assigning weights to important aspects of the game state(good food, ghosts, high scaredTimes of ghosts)
+        #retVal - value to be returned after calculating the weights
+        retVal = 0
+        
+        #Getting the distance of pacman from food
+        foodDist = 'Inf'
+        for i in newFood.asList():
+            #Need to get the closest food 
+            foodDist = min(foodDist, manhattanDistance(i, newPos))
+            
+        #weight for min food dist
+        if(foodDist != 0):
+            retVal += 1.0/(1000*float(foodDist))
+        else:
+            retVal = 0
+            
+        #Getting the distance of pacman from ghosts
+        ghostDist = 0
+        for j in newGhostStates:
+            #max dist from ghosts
+            ghostDist = max(ghostDist, manhattanDistance(j.getPosition(), newPos))
+            #min dist from ghosts
+            ghostMinDist = min('Inf', manhattanDistance(j.getPosition(), newPos))
+            
+        #weight for min dist from ghost
+        if ghostMinDist < 2:
+            retVal -= 1000
+         
+        #Getting the scaredTimes of the ghosts and adding weights
+        for k in newScaredTimes:
+            retVal += k   
+        
+        #Final retVal
+        retVal = retVal + successorGameState.getScore()
+        
+        return retVal
 
 def scoreEvaluationFunction(currentGameState):
     """
