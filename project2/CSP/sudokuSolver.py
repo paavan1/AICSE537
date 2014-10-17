@@ -39,12 +39,19 @@ def check_valid(puzzle):
             check.append(allUnique([puzzle[i+0][j+0],puzzle[i+0][j+1],puzzle[i+0][j+2],puzzle[i+1][j+0],puzzle[i+1][j+1],puzzle[i+1][j+2],puzzle[i+2][j+0],puzzle[i+2][j+1],puzzle[i+2][j+2]]))
     return all(check)
 
+
+
+
+
 def choose_variable(puzzle):
 	for i in range(0,9):
 		for j in range(0,9):
 			if(puzzle[i][j] == 0):
 				return [i,j]
+	
 	return False
+
+
 def check_complete(puzzle):
 	if(choose_variable(puzzle) == False):
 		return True
@@ -61,8 +68,7 @@ def recursive_backtracking(puzzle):
 			result = recursive_backtracking(puzzle)
 			if (result != False):
 				return result
-		else: 
-			puzzle[x_val][y_val] = 0
+	puzzle[x_val][y_val] = 0
 	return False
 
 #===================================================#

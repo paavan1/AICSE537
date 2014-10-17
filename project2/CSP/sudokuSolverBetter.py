@@ -19,9 +19,9 @@ from sudokuUtil import *
 # You can utilize argv to distinguish between algorithms
 # (basic backtracking or with MRV and forward checking).
 # For example: python sudokuSolver.py backtracking
-def solve_puzzle(puzzle, argv):
+def solve_puzzle(puzzle, listoflistofstacks, argv):
     """Solve the sudoku puzzle."""
-    puzzle = recursive_backtracking(puzzle)
+    puzzle = recursive_backtracking(puzzle, listoflistofstacks)
     if (puzzle == False):
         return "Failed"
     return puzzle
@@ -39,37 +39,99 @@ def check_valid(puzzle):
             check.append(allUnique([puzzle[i+0][j+0],puzzle[i+0][j+1],puzzle[i+0][j+2],puzzle[i+1][j+0],puzzle[i+1][j+1],puzzle[i+1][j+2],puzzle[i+2][j+0],puzzle[i+2][j+1],puzzle[i+2][j+2]]))
     return all(check)
 
-def choose_variable(puzzle):
+def choose_variable(puzzle, listoflistofstacks):
+	minimumvalues = [100,100,100]
 	for i in range(0,9):
 		for j in range(0,9):
-			if(puzzle[i][j] == 0):
-				return [i,j]
-	return False
+			if((len(listoflistofstacks[i][j]) < minimumvalues[2]) and (len(listoflistofstacks[i][j])>1) and (puzzle[i][j]==0)):
+				minimumvalues = [i, j, len(listoflistofstacks[i][j])]
+	if(minimumvalues[0] == 100):
+		for i in range(0,9):
+			for j in range(0,9):
+				if (puzzle[i][j]==0):
+					return [i,j]
+		return False
+
+		
+	else:
+		return [minimumvalues[0],minimumvalues[1]]
 def check_complete(puzzle):
-	if(choose_variable(puzzle) == False):
+	if(choose_variable(puzzle,listoflistofstacks) == False):
 		return True
 	return False
+def build_stacks(puzzle):
+	listoflistofstacks = []
+	rowsofstacks = []
+	allpossible = [1,2,3,4,5,6,7,8,9]
+	for i in range(0,9):
+		rowsofstacks = []
+		for j in range(0,9):
+			if (puzzle[i][j] == 0):
+				rowsofstacks.append(allpossible)
+			else:
+				rowsofstacks.append([puzzle[i][j]])
+		listoflistofstacks.append(rowsofstacks)
+	return listoflistofstacks
 
 
-def recursive_backtracking(puzzle):
+def propogate_constraints(puzzle,lister, x, y, value):
+#collums
+	for i in range(0,9):
+		if(( value in lister[x][i]) and (puzzle[x][i]==0) and (len(lister[x][i]) > 1) ):
+			lister[x][i].remove(value)
+			print "removed"
+#			if (len(lister[x][i])==1):
+#				propogate_constraints(lister, x, i, lister[x][i][0])
+#rows
+#	for j in range(0,9):
+#		if value in lister[j][y]:
+#			lister[j][y].remove(value)
+#			if (len(lister[j][y])==1):
+#				 propogate_constraints(lister, j, y, lister[j][y][0])
+
+#box
+#	box_x = x/3
+#	box_y = y/3
+#	for i in range(0,3):
+#		for j in range(0,3):
+#			if value in lister[box_x + i][box_y + j]:
+#				lister[box_x + i][box_y + j].remove(value)
+#				if (len(lister[box_x + i][box_y + j])==1):
+#					 propogate_constraints(lister, box_x + i,box_y + j, lister[box_x + i][box_y + j][0])
+
+	return lister	
+
+
+
+
+def recursive_backtracking(puzzle, listoflistofstacks):
 	if ((check_valid(puzzle) == True) and (check_complete(puzzle) == True)):
 		return puzzle
-	[x_val, y_val] = choose_variable(puzzle)
-	for value in range(1,10):
+	[x_val, y_val] = choose_variable(puzzle,listoflistofstacks)
+	savedstack = listoflistofstacks
+	for value in savedstack[x_val][y_val]:
+	 	savedstack2 = listoflistofstacks
 		puzzle[x_val][y_val] = value
+#		listoflistofstacks[x_val][y_val] = [value]
+#		listoflistofstacks = propogate_constraints(puzzle,listoflistofstacks, x_val, y_val, value)
 		if (check_valid(puzzle) == True):
-			result = recursive_backtracking(puzzle)
+			print "true"
+			result = recursive_backtracking(puzzle, listoflistofstacks)
 			if (result != False):
 				return result
-		else: 
-			puzzle[x_val][y_val] = 0
+		else:
+		  	print "false"
+		listoflistofstacks = savedstack2
+	puzzle[x_val][y_val] = 0
+#	listoflistofstacks = savedstack
 	return False
 
 #===================================================#
 puzzle = load_sudoku('puzzle.txt')
 print "solving ..."
+listoflistofstacks = build_stacks(puzzle)
 t0 = time()
-solution = solve_puzzle(puzzle, sys.argv)
+solution = solve_puzzle(puzzle, listoflistofstacks, sys.argv)
 t1 = time()
 print "completed. time usage: %f" %(t1 - t0), "secs."
 
