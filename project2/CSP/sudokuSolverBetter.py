@@ -97,14 +97,16 @@ def propogate_constraints(puzzle,lister, x, y):
 				 propogate_constraints(puzzle,lister, j, y)
 
 #box
-#	box_x = x/3
-#	box_y = y/3
-#	for i in range(0,3):
-#		for j in range(0,3):
-#			if ((value in lister[box_x + i][box_y + j]) and (puzzle[box_x + i][box_y + j]==0) and (len(lister[box_x + i][box_y + j])>1)):
-#				lister[box_x + i][box_y + j] = [xt for xt in lister[box_x + i][box_y + j] if xt != value]
-#				if (len(lister[box_x + i][box_y + j])==1):
-#					 propogate_constraints(puzzle,lister, box_x + i,box_y + j)
+	x = x/3
+	y = y/3
+	box_x = 3*x
+	box_y = 3*y
+	for i in range(0,3):
+		for j in range(0,3):
+			if ((value in lister[box_x + i][box_y + j]) and (puzzle[box_x + i][box_y + j]==0) and (len(lister[box_x + i][box_y + j])>1)):
+				lister[box_x + i][box_y + j] = [xt for xt in lister[box_x + i][box_y + j] if xt != value]
+				if (len(lister[box_x + i][box_y + j])==1):
+					 propogate_constraints(puzzle,lister, box_x + i,box_y + j)
 
 	return lister	
 
@@ -115,27 +117,26 @@ def recursive_backtracking(puzzle, listoflistofstacks):
 	if ((check_valid(puzzle) == True) and (check_complete(puzzle) == True)):
 		return puzzle
 	[x, y] = choose_variable(puzzle,listoflistofstacks)
-	savedstack1 = listoflistofstacks	
-	for value in savedstack1[x][y]:
+	for value in listoflistofstacks[x][y]:
 		savedstack = listoflistofstacks
 		savedpuzzle = puzzle
 		puzzle[x][y] = value
 		if (check_valid(puzzle) == True):
-			listoflistofstacks[x][y] = [value]
-#			listoflistofstacks = propogate_constraints(puzzle, listoflistofstacks, x,y)
-			puzzle = recursive_backtracking(puzzle, listoflistofstacks)
+			savedstack = propogate_constraints(puzzle, savedstack, x,y)
+			puzzle = recursive_backtracking(puzzle, savedstack)
 			if (puzzle != False):
 				return puzzle
 			else:
-				listoflistofstacks = savedstack
-				puzzle = savedpuzzle
+			 	puzzle = savedpuzzle
 	puzzle[x][y] = 0
-	listoflistofstacks = savedstack1
 	return False
 
 #===================================================#
+global puzzle
 puzzle = load_sudoku('puzzle.txt')
 print "solving ..."
+
+#global listoflistofstacks
 listoflistofstacks = build_stacks(puzzle)
 t0 = time()
 solution = solve_puzzle(puzzle, listoflistofstacks, sys.argv)

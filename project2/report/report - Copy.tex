@@ -75,21 +75,21 @@
 
 \end{tabular} \\\\
 {\bf Q5:}
-  Sudoku has been implemented with the help of .The running time results of the 10 puzzles have been listed in the following table. The average of the running times is coming to be 1.2005281  sec and the variance of the running times  is coming out to be 1.304  sec
+  Sudoku has been implemented with the help of .The running time results of the 10 puzzles have been listed in the following table. The average of the running times is coming to be 0.202  sec and the variance of the running times  is coming out to be 0.073  sec
   
     \begin{tabular}{ |l|l| }
   \hline
   Puzzle number  & Running time \\ \hline
-   1& 19\\\hline
-    2& 179\\\hline
-      3& 886\\\hline
-            4& 4463\\\hline
-                 5 & 18625\\\hline
-                  6& 18625\\\hline
-                  7& 18625\\\hline
-                  8& 18625\\\hline
-                  9& 18625\\\hline
-                  10& 18625\\\hline
+   1& 0.057\\\hline
+    2& 0.182\\\hline
+      3& 0.172\\\hline
+            4& 0.69\\\hline
+                 5 & 0.716\\\hline
+                  6& 0.0126\\\hline
+                  7& 0.0097\\\hline
+                  8& 0.075\\\hline
+                  9& 0.0546\\\hline
+                  10& 0.0533\\\hline
   
 \end{tabular} \\\\
   
@@ -98,7 +98,13 @@
 
 
 The following observations and inferences can be made from the statistics.\\
-1.The running time of solving Sudoku in Problem 5  has been decreased  considerably when compared to Problem 4 . This has been because many invalid assigments of puzzle have been pruned out in Problem 5 instead of searching  all invalid assignments for the puzzle
+
+
+1.The running time of solving Sudoku in Problem 5  has been decreased  considerably when compared to Problem 4 . This has been because many invalid assigments of puzzle have been pruned out in Problem 5 instead of searching  all invalid assignments for the puzzle\\
+
+
+
+2. If we propogate the constraints on the initial input by exploiting the known values the search problem further reduces and we get much faster results.
 
 
 \end{document}
