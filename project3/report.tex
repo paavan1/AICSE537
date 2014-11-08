@@ -1,0 +1,95 @@
+\documentclass[11pt]{article}
+\usepackage{amsfonts,amsmath,amssymb,graphicx,url}
+\usepackage{fullpage}
+\usepackage{amsthm}
+\usepackage{epsfig}
+\usepackage{graphicx}
+\usepackage{wrapfig}
+\usepackage{graphicx}
+\author{Paavan Kumar}
+
+\title{CSE537  Artificial Intelligence}
+
+\setlength{\oddsidemargin}{.25in}
+\setlength{\evensidemargin}{.25in}
+\setlength{\textwidth}{6.25in}
+\setlength{\topmargin}{-0.4in}
+\setlength{\textheight}{8.5in}
+
+\newcommand{\heading}[5]{
+   \renewcommand{\thepage}{\arabic{page}}
+   \noindent
+   \begin{center}
+   \framebox{
+      \vbox{
+    \hbox to 6.2in { {\bf CSE537  Artificial Intelligence}
+     	 \hfill #2 }
+       \vspace{4mm}
+       \hbox to 6.2in { {\Large \hfill #5  \hfill} }
+       \vspace{2mm}
+       \hbox to 6.2in { { #3 \hfill #4} }
+      }
+   }
+   \end{center}
+   \vspace*{4mm}
+}
+
+\newcommand{\handout}[3]{\heading{#1}{#2}{\it Paavan Kumar Sirigiri, 109596437  Vivek Pradhan, 109596020         Varsha Paidi, 107677677}{}{#3}}
+
+\setlength{\parindent}{0in}
+\setlength{\parskip}{0.1in}
+
+
+
+\begin{document}
+\handout{1}{\today}{Project 2 report Pacman}
+\section{ Statistics and Implementation}
+{\bf Q 1 :}
+
+We considered the following features for the evaluation function:\\
+1) Nearest food to the Pacman position : This has been  added to the score \\
+ 2) Maximum distance to the ghost:  This has been subtracted from the score\\
+ 3) Scare times of ghosts: All ghosts' scare time have been added to the score\\
+
+{\bf Q2:}
+
+ MAX player is Pacman and MIN player is all the ghosts. The standard Minimax algorithm has been used to implement the Minimax agent.  In the min player turn by the ghosts,  possible actions of all ghosts at the same depth  were considered before  moving on to next level. \\ \\
+\begin{tabular}{ |l|l|l|l| }
+  \hline
+  Depth  & Search nodes expanded& Running time (in sec for 100 games ) & Win rate(for 100 games)\\\hline
+  1& 33 &3&50\\\hline
+    2& 211&11&42\\\hline
+      3& 1160&65&38\\\hline
+            4& 5916&160&66\\\hline
+                  5& 24890&440 & 55 \\
+  \hline
+\end{tabular} \\\\
+{\bf Q3:}
+Minimax algorithm has been modified to include alpha and beta values and hence  the search tree  was pruned.   \\\\
+ \begin{tabular}{ |l|l| l|l|}
+  \hline
+  Depth  & Search nodes expanded & Running time (in sec for 100 games ) & Win rate  (for 100 games )\\ \hline
+   1& 19&2.5&50\\\hline
+    2& 179&7&42\\\hline
+      3& 886&31&38\\\hline
+            4& 4463&90&66\\\hline
+                  5& 18625&265&55\\
+  \hline
+\end{tabular} \\\\
+
+
+  
+\section{  Critical Analysis }
+
+
+
+The following observations and inferences can be made from the statistics.\\
+1.We can observe from the statistics that Alpha beta pruning has  drastically reduced the number of search nodes as compared to Minimax algorithm  at various depths. The reduction varies almost exponentially with respect to depth. \\
+2. We can see that  the running time of   Alpha beta pruning has always been less than that of Minimax algorithm at all depths.\\
+3. We can see that  the win rate  of   Alpha beta pruning is the same as that of Minimax algorithm at all depths.\\
+4. We can see that  the running time of is increasing exponentially from one depth to another depth.\\
+5. We can see that  the win rate of   Alpha beta pruning has always been same as that of  Minimax algorithm at all depths.\\
+
+
+
+\end{document}
