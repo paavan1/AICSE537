@@ -1,17 +1,18 @@
 import re
 from math import log
 class Question1_Solver:
-    def __init__(self, col=-1, value=None, res=None, node1=None, node2=None, node3=None):
+    def __init__(self, col=-1, res=None, node1=None, node2=None, node3=None):
         self.learn('train.data');
         self.col = col
-        self.value = value
         self.res = res
         self.node1 = node1
         self.node2 = node2
         self.node3 = node3
+        self.label = ''
+        self.is_leaf = None
         return;
 
-    entropy = 0.0
+
     def divide_records(self, rows, column, value):
         split = lambda row: row[column] == value
 
@@ -30,27 +31,56 @@ class Question1_Solver:
         return rec
 
     def calculate_entropy(self, rows):
-        global entropy
         cal_log = lambda x: log(x)/log(2)
         res = self.calculate_count(rows)
-
+        entropy = 0.0
         for result in res.keys():
             val = float(res[result])/len(rows)
+            if val < 0.00001:
+                val = 0.00001
             entropy -= val * cal_log(val)
         return entropy
 
-    def build_tree(self, rows, scoref=entropy):
-        print scoref
+    def build_tree(self, rows):
         if len(rows) == 0:
             return Question1_Solver()
-        curr_score = scoref(rows)
+        total_entropy = self.calculate_entropy(rows)
 
         highest_gain = 0.0
-        best_attribute = None
+        best_attr = None
         best_sets = None
+        label = ''
 
-        column_count = len(rows[0])-1
+        column_count = len(rows[0])
+        for col in range(1, column_count):
+            # # Generate the list of different values in this column
+            # column_values = {}
+            # for row in rows:
+            #     column_values[row[col]] = 1
 
+            # Dividing the rows up for each value in this column
+            # for value in column_values.get('y'):
+            (set1, set2) = self.divide_records(rows, col, 'y')
+            (set3, set4) = self.divide_records(set2, col, 'n')
+
+            # Information gain
+            p = float(len(set1))/len(rows)
+            q = float(len(set3))/len(rows)
+            gain = total_entropy - p * self.calculate_entropy(set1) - q * self.calculate_entropy(set3) - \
+                (1-(p + q)) * self.calculate_entropy(set4)
+            if gain > highest_gain:
+                highest_gain = gain
+                best_attr = col
+                best_sets = (set1, set3, set4)
+
+        # Creating the sub branches
+        if highest_gain > 0:
+            yBranch = self.build_tree(best_sets[0])
+            nBranch = self.build_tree(best_sets[1])
+            oBranch = self.build_tree(best_sets[2])
+            return Question1_Solver(col=best_attr, node1=yBranch, node2=nBranch, node3=oBranch)
+        else:
+            return Question1_Solver(res=self.calculate_count(rows))
 
 
     # Add your code here.
@@ -73,26 +103,16 @@ class Question1_Solver:
             del record[-1]
             records.append(record)
 
-        results = []
-        for i, c in enumerate(records):
-            results.append(records[i][0])
 
-        (set1, set2) = self.divide_records(records, 1, '?')
-        (set3, set4) = self.divide_records(set2, 1, 'y')
-        # print set1.__len__()
-        # print set3.__len__()
-        # print set4.__len__()
-        # print self.calculate_count(records)
-        # print self.calculate_entropy(set2)
-        self.build_tree(records)
-
+        tree = self.build_tree(records)
 
         return;
 
     # Add your code here.
     # Use the learned decision tree to predict
     # query example: 'n,y,n,y,y,y,n,n,n,y,?,y,y,y,n,y'
-    # return 'republican' or 'republican'
+    # return 'democrat' or 'republican'
     def solve(self, query):
+
         return 'democrat';
 
