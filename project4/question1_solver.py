@@ -1,16 +1,19 @@
 import re
 from math import log
 class Question1_Solver:
-    def __init__(self, col=-1, res=None, node1=None, node2=None, node3=None):
-        self.learn('train.data');
-        self.col = col
-        self.res = res
-        self.node1 = node1
-        self.node2 = node2
-        self.node3 = node3
-        self.label = ''
-        self.is_leaf = None
-        return;
+    def __init__(self):
+        self.learn('tsample.data');
+        return
+
+    class Tree:
+        def __init__(self, col=-1, res=None, node1=None, node2=None, node3=None, label='', is_leaf=None):
+            self.col = col
+            self.res = res
+            self.node1 = node1
+            self.node2 = node2
+            self.node3 = node3
+            self.label = label
+            self.is_leaf = is_leaf
 
 
     def divide_records(self, rows, column, value):
@@ -25,7 +28,7 @@ class Question1_Solver:
         for i in rows:
             res = i[0]
             if res not in rec:
-                rec[res] = 0
+                rec[res] = 1
             else:
                 rec[res] += 1
         return rec
@@ -42,22 +45,35 @@ class Question1_Solver:
         return entropy
 
     def build_tree(self, rows):
-        if len(rows) == 0:
-            return Question1_Solver()
+        threshold = 2
+        if len(rows) == 1 or len(rows) == 2:
+            label = 'democrat'
+
+        res = self.calculate_count(rows)
+        # If all are democrats, set label to democrat
+        if res.get('democrat') == len(rows):
+            return self.Tree(label='democrat', is_leaf=True)
+        # If all are republican then set label to republican
+        if res.get('republican') == len(rows):
+            return self.Tree(label='republican', is_leaf=True)
+
+        # If the number of democrat records are more than republic,
+        # set label to democrat else to republican
+        if res.get('democrat') > res.get('republican'):
+            label = 'democrat'
+        elif res.get('democrat') < res.get('republican'):
+            label = 'republican'
+        else:
+            label = 'democrat'
+        # Entropy of the entire training set
         total_entropy = self.calculate_entropy(rows)
 
         highest_gain = 0.0
-        best_attr = None
+        split_attr = None
         best_sets = None
-        label = ''
 
         column_count = len(rows[0])
         for col in range(1, column_count):
-            # # Generate the list of different values in this column
-            # column_values = {}
-            # for row in rows:
-            #     column_values[row[col]] = 1
-
             # Dividing the rows up for each value in this column
             # for value in column_values.get('y'):
             (set1, set2) = self.divide_records(rows, col, 'y')
@@ -70,17 +86,17 @@ class Question1_Solver:
                 (1-(p + q)) * self.calculate_entropy(set4)
             if gain > highest_gain:
                 highest_gain = gain
-                best_attr = col
+                split_attr = col
                 best_sets = (set1, set3, set4)
 
         # Creating the sub branches
-        if highest_gain > 0:
+        if highest_gain > 0 and len(rows) > threshold:
             yBranch = self.build_tree(best_sets[0])
             nBranch = self.build_tree(best_sets[1])
             oBranch = self.build_tree(best_sets[2])
-            return Question1_Solver(col=best_attr, node1=yBranch, node2=nBranch, node3=oBranch)
+            return self.Tree(col=split_attr, node1=yBranch, node2=nBranch, node3=oBranch, label=label, is_leaf=False)
         else:
-            return Question1_Solver(res=self.calculate_count(rows))
+            return self.Tree(res=self.calculate_count(rows), label=label, is_leaf=True)
 
 
     # Add your code here.
@@ -103,10 +119,10 @@ class Question1_Solver:
             del record[-1]
             records.append(record)
 
-
         tree = self.build_tree(records)
 
-        return;
+
+        return
 
     # Add your code here.
     # Use the learned decision tree to predict
@@ -114,5 +130,5 @@ class Question1_Solver:
     # return 'democrat' or 'republican'
     def solve(self, query):
 
-        return 'democrat';
+        return 'democrat'
 
