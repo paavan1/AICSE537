@@ -1,40 +1,41 @@
 import string
+import re
 class Question3_Solver:
     def __init__(self, cpt):
         alphs = ["`", "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l",
                  "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z"]
 
-        mid_alphs = string.ascii_lowercase
         #Below is the cpt for one hidden variable
         #given characters are in rows
-        self.cpt3 = [[0 for x in range(27)] for x in range(27)]
-        sum_prob = 0.0
+        self.cpt_onehidden = [[0 for x in range(27)] for x in range(27)]
+        sum_prob = 0
 
         for left_let in alphs:
             for right_let in alphs:
-                sum_prob = 0.0
-                for mid_let in mid_alphs:
-                    sum_prob += cpt.conditional_prob(left_let, mid_let) * cpt.conditional_prob(mid_let, right_let)
-                    i_right = ord(right_let) - 96
-                    i_left = ord(left_let) - 96
-                    self.cpt3[i_left][i_right] = sum_prob
-
-        #Below is the cpt for 2 hidden variables
-        self.cpt4 = [[0 for x in range(27)] for x in range(27)]
-        sum_prob = 0.0
-
+                sum_prob=0
+                for mid_let in alphs:
+                    sum_prob += cpt.conditional_prob(mid_let, left_let) * cpt.conditional_prob(right_let, mid_let)
+                i_right = ord(right_let) - 96
+                i_left = ord(left_let) - 96
+                self.cpt_onehidden[i_right][i_left] = sum_prob
+                    
+                    
+        self.cpt_twohidden = [[0 for x in range(27)] for x in range(27)]
         for left_let in alphs:
-            for right_let in alphs:
-                sum_prob = 0.0
-                for mid_let in mid_alphs:
-                    # print left_let+mid_let+right_let
-                    i_left = ord(left_let) - 96
-                    i_mid = ord(mid_let) - 96
-                    i_right = ord(right_let) - 96
-                    sum_prob += cpt.conditional_prob(left_let, mid_let) * self.cpt3[i_mid][i_right]
-                    self.cpt4[i_left][i_right] = sum_prob
-
-        self.cpt = cpt
+             for right_let in alphs:
+                 i_right = ord(right_let) - 96
+                 i_left = ord(left_let) - 96
+                 sum_prob=0
+                 for mid_let in alphs:
+                     i_mid=ord(mid_let) - 96
+                     sum_prob += cpt.conditional_prob(mid_let, left_let) * self.cpt_onehidden[i_right][ i_mid]
+                 for mid_let in alphs:
+                     i_mid=ord(mid_let) - 96    
+                     sum_prob += cpt.conditional_prob(right_let, mid_let) * self.cpt_onehidden[i_mid][i_left ]
+                 self.cpt_twohidden[i_right][i_left] = sum_prob
+                 
+        self.cpt = cpt;
+        return;
 
     #####################################
     # ADD YOUR CODE HERE
@@ -48,63 +49,65 @@ class Question3_Solver:
     # query example:
     #    query: "qu--_--n";
     #    return "t";
-    def solve(self, query):
-
-        alphs = ["`", "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l",
-                 "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z"]
-        #To compare which letter gives max prob
-        max_prob = -9999999999.0
-        #missing letter
-        missing_letter = '*'
-
-        #To check if its first "-"
-        is_first = False
-        #To check if its second "-"
-        is_second = False
-        query = "`" + query + "`"
-
-        mid_alphs = string.ascii_lowercase
-        for letters in mid_alphs:
-            #replacing "_" with various alphabets
-            q = query.replace("_", letters)
-            prob = 1.0
-            letter_before = query[0]
-            count = 0
-            for c, i in enumerate(q):
-                count += 1
-                if i == "-":
-                    if count == 1:
-                        letter_before = i
-                        continue
-                    if is_first:
-                        is_first = False
-                        is_second = True
-                    else:
-                        is_first = True
-                        is_second = False
+    def findProb(self,letter,word1):
+         word=word1
+         i= word1.index("_")
+         word=re.sub('_', letter, word) 
+         #word = word1[:i-1]+ letter + word1[i+1:]
+         #print word
+         prob=1;
+         for i, c in enumerate(word):
+          if   c!="-" and i <= len(word)-1:
+                #To calculate the first probability
+                if i == 0:
+                    prob = self.cpt.conditional_prob(word[i], "`")
+                elif i == 1 and word[i-1]=="-":
+                     prob = prob * self.cpt_onehidden[ord(word[i])-96][ord("`")-96]
+                elif i == 2 and word[i-1]=="-" and  word[i-2]=="-":
+                     prob = prob * self.cpt_twohidden[ord(word[i])-96][ord("`")-96]
+                
+                
+                    
+                #To calculate middle probabilities
                 else:
-                    if count == 1:
-                        letter_before = i
-                        continue
-                    if is_first == False and is_second == False:
-                        prob *= self.cpt.conditional_prob(i, letter_before)
-                        #If its the first "-"
-                    elif is_first == True:
-                        prob *= self.cpt3[ord(i) - 96][ord(letter_before) - 96]
-                        is_first = False
-                        #If its the second "-"
-                    elif is_second == True:
-                        prob *= self.cpt4[ord(i) - 96][ord(letter_before) - 96]
-                        is_second = False
-                    else:
-                        print "Error"
-                if i != "-":
-                    letter_before = i
-            #To check if the prob is greater than max prob else assign to max prob
-            if prob > max_prob:
-                max_prob = prob
-                missing_letter = letters
+                    
+                    if(word[i-1]=="-" and word[i-2]=="-"):
+                     prob = prob * self.cpt_twohidden[ord(word[i])-96][ ord(word[i-3])-96]
+                    elif(word[i-1]=="-" ):
+                     prob = prob * self.cpt_onehidden[ord(word[i])-96][ord(word[i-2])-96]
+                    
+                     prob = prob * self.cpt.conditional_prob(word[i], word[i-1])
+          
+         if(word[i]=="-" and word[i-1]=="-"):
+          prob = prob * self.cpt_twohidden[ord("`")-96][ ord(word[i-2])-96]
+         elif(word[i]=="-" ):
+          prob = prob * self.cpt_onehidden[ord("`")-96][ ord(word[i-1])-96]
+         else:
+          prob = prob * self.cpt.conditional_prob("`", word[i])
 
-        #To return the missing letter
-        return missing_letter
+         #print prob
+         return prob;
+    def solve(self, query):
+        #To compare which letter gives max prob
+        max_prob = 0.0
+        #Probability
+        prob = 0.0
+        missing_letter=""
+        words= query
+        #To iterate through all the letters and calculate prob
+        #Skip the calculation of prob when char is "_".
+        alphs = string.ascii_lowercase
+        prob=1.0
+        for letter in alphs:
+         
+         
+             
+          prob=self.findProb(letter,query)
+          if(max_prob<prob):
+             max_prob=prob
+             missing_letter=letter   
+             
+           
+
+        return missing_letter;
 
