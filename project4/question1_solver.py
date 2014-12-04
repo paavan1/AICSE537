@@ -1,103 +1,16 @@
-import re
-from math import log
+import numpy
+import math
+class Tree(object):
+    def __init__(self):
+        self.left = None
+        self.right = None
+        self.middle = None
+        self.data = None
+        
 class Question1_Solver:
     def __init__(self):
-        self.learn('tsample.data');
-        return
-
-    class Tree:
-        def __init__(self, col=-1, res=None, node1=None, node2=None, node3=None, label='', is_leaf=None):
-            self.col = col
-            self.res = res
-            self.node1 = node1
-            self.node2 = node2
-            self.node3 = node3
-            self.label = label
-            self.is_leaf = is_leaf
-
-
-    def divide_records(self, rows, column, value):
-        split = lambda row: row[column] == value
-
-        set1 = [row for row in rows if split(row)]
-        set2 = [row for row in rows if not split(row)]
-        return (set1,set2)
-
-    def calculate_count(self, rows):
-        rec = {}
-        for i in rows:
-            res = i[0]
-            if res not in rec:
-                rec[res] = 1
-            else:
-                rec[res] += 1
-        return rec
-
-    def calculate_entropy(self, rows):
-        cal_log = lambda x: log(x)/log(2)
-        res = self.calculate_count(rows)
-        entropy = 0.0
-        for result in res.keys():
-            val = float(res[result])/len(rows)
-            if val < 0.00001:
-                val = 0.00001
-            entropy -= val * cal_log(val)
-        return entropy
-
-    def build_tree(self, rows):
-        threshold = 2
-        if len(rows) == 1 or len(rows) == 2:
-            label = 'democrat'
-
-        res = self.calculate_count(rows)
-        # If all are democrats, set label to democrat
-        if res.get('democrat') == len(rows):
-            return self.Tree(label='democrat', is_leaf=True)
-        # If all are republican then set label to republican
-        if res.get('republican') == len(rows):
-            return self.Tree(label='republican', is_leaf=True)
-
-        # If the number of democrat records are more than republic,
-        # set label to democrat else to republican
-        if res.get('democrat') > res.get('republican'):
-            label = 'democrat'
-        elif res.get('democrat') < res.get('republican'):
-            label = 'republican'
-        else:
-            label = 'democrat'
-        # Entropy of the entire training set
-        total_entropy = self.calculate_entropy(rows)
-
-        highest_gain = 0.0
-        split_attr = None
-        best_sets = None
-
-        column_count = len(rows[0])
-        for col in range(1, column_count):
-            # Dividing the rows up for each value in this column
-            # for value in column_values.get('y'):
-            (set1, set2) = self.divide_records(rows, col, 'y')
-            (set3, set4) = self.divide_records(set2, col, 'n')
-
-            # Information gain
-            p = float(len(set1))/len(rows)
-            q = float(len(set3))/len(rows)
-            gain = total_entropy - p * self.calculate_entropy(set1) - q * self.calculate_entropy(set3) - \
-                (1-(p + q)) * self.calculate_entropy(set4)
-            if gain > highest_gain:
-                highest_gain = gain
-                split_attr = col
-                best_sets = (set1, set3, set4)
-
-        # Creating the sub branches
-        if highest_gain > 0 and len(rows) > threshold:
-            yBranch = self.build_tree(best_sets[0])
-            nBranch = self.build_tree(best_sets[1])
-            oBranch = self.build_tree(best_sets[2])
-            return self.Tree(col=split_attr, node1=yBranch, node2=nBranch, node3=oBranch, label=label, is_leaf=False)
-        else:
-            return self.Tree(res=self.calculate_count(rows), label=label, is_leaf=True)
-
+        self.model = self.learn('train.data');
+        return;
 
     # Add your code here.
     # Read training data and build your decision tree
@@ -105,30 +18,115 @@ class Question1_Solver:
     # This function runs only once when initializing
     # Please read and only read train_data: 'train.data'
     def learn(self, train_data):
+        #Read the data and populate vector
+        with open(train_data) as f:
+            content = f.readlines()
+        datas = numpy.zeros((len(content),16))
+        labels = numpy.zeros((len(content)))
+        integer = 0
+        for data in content:
+            
+            data = data.split()
+            if data[0] == 'democrat':
+                whichcrat = 0
+            if data[0] == 'republican':
+                whichcrat = 1
+            tempdata = data[1].split(',')
+            temp = []
+            index = 0
+            for value in tempdata:
+                
+                if value == 'y':
+                    datas[integer][index] = 1
+                if value == 'n':
+                    datas[integer][index] = 0
+                if value == '?':
+                    datas[integer][index] = 2
+                index = index + 1
+            labels[integer] = whichcrat
+            integer = integer + 1
+        features = []
+        for i in range(0,16):
+            features.append(i)
+        root = Tree()
+        root = self.build_tree(root, features, datas, labels, 'democrat')
+        return root;
+        
+    
+    def build_tree(self, root, features, datas, labels, string):
 
-        # Storing the data in list
-        records = []
+        if len(labels) == 0:
+            root.data = string
+            return root
+        if self.checkEqual(labels):
+            if labels[0] == 0:
+                root.data = 'democrat'
+            if labels[0] == 1:
+                root.data = 'republican'
+            return root
+        if len(features) == 0:
+            if (len(labels)-sum(labels))>sum(labels):
+                root.data = 'democrat'
+            else:
+                root.data = 'republican'
+            return root
+        
+        chosen = self.choose_feature(features, datas, labels)
+        root.data = chosen
+        newroot1 = Tree()
+        newroot2 = Tree()
+        newroot3 = Tree()
+        newfeatures = [x for x in features if x != chosen]
+        yesses = []
+        nos = []
+        questionmarks = []
+        index = 0
 
-        # Reading data from file
-        with open(train_data) as line:
-            data = line.readlines()
+        for response in datas[:,chosen]:
+            if response == 1:
+                yesses.append(index)
+            if response == 0:
+                nos.append(index)
+            if response == 2:
+                questionmarks.append(index)
+            index = index + 1
 
-        # Processing the data and storing in a list
-        for i in data:
-            record = re.split('\t|,|\n', i)
-            del record[-1]
-            records.append(record)
-
-        tree = self.build_tree(records)
-
-
-        return
-
+        root.right = self.build_tree(newroot1, newfeatures, datas[yesses][:], labels[yesses], 'democrat')
+        root.left = self.build_tree(newroot2, newfeatures, datas[nos][:], labels[nos], 'democrat')
+        root.middle = self.build_tree(newroot3, newfeatures, datas[questionmarks][:], labels[questionmarks], 'democrat')
+        return root
+        
+    def checkEqual(self, iterator):
+       return len(set(iterator)) <= 1
     # Add your code here.
     # Use the learned decision tree to predict
     # query example: 'n,y,n,y,y,y,n,n,n,y,?,y,y,y,n,y'
-    # return 'democrat' or 'republican'
+    # return 'republican' or 'republican'
+    def choose_feature(self, features, datas, labels):
+        return features[0]
     def solve(self, query):
+        tempdata = query.split(',')
+        index = 0
+        data = numpy.zeros((16))
+        for value in tempdata:
+            
+            if value == 'y':
+                data[index] = 1
+            if value == 'n':
+                data[index] = 0
+            if value == '?':
+                data[index] = 2
+            index = index + 1
+        output = self.model
+        while(output.data != 'democrat' and output.data != 'republican'):
 
-        return 'democrat'
+            if(data[output.data] == 1):
+                output = output.right
+            else:
+                if(data[output.data] == 0):
+                    output = output.left
+                else:
+                    if(data[output.data] == 2):
+                        output = output.middle
+        return output.data;
 
