@@ -41,12 +41,22 @@ class Question2_Solver:
                 if value == '?':
                     probabilities[whichcrat][2][index] = probabilities[whichcrat][2][index] + 1
                 index = index + 1
-        #normalize and take logs
-        numoftraindata = probabilities[0][0][0] + probabilities[0][1][0] + probabilities[0][2][0]
+        #smoothing 
         for i in range(0,2):
             for j in range(0,3):
                 for k in range(0,16):
-                    probabilities[i][j][k] = (probabilities[i][j][k]+1)/(numoftraindata+16)
+                    if probabilities[i][j][k] == 0:
+                        probabilities[i][j][k] = (probabilities[i][j][k]+1)
+        #normalize and take logs
+        numoftraindata1 = probabilities[0][0][0] + probabilities[0][1][0] + probabilities[0][2][0]
+        numoftraindata2 = probabilities[1][0][0] + probabilities[1][1][0] + probabilities[1][2][0]
+        for i in range(0,2):
+            for j in range(0,3):
+                for k in range(0,16):
+                    if i == 0:
+                        probabilities[i][j][k] = (probabilities[i][j][k])/(numoftraindata1)
+                    else:
+                        probabilities[i][j][k] = (probabilities[i][j][k])/(numoftraindata2)
         return probabilities;
     
     def calc_prob(self, query, whichcrat):
